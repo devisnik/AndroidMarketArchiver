@@ -5,71 +5,78 @@
               directory with the processing instruction <?eclipse.ant.import?>
               as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="de.devisnik.android.stats">
-    <property environment="env"/>
-    <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.6"/>
-    <property name="source" value="1.6"/>
-    <path id="de.devisnik.android.stats.classpath">
-        <pathelement location="bin"/>
-        <pathelement location="lib/selenium-2.15.0/libs/apache-mime4j-0.6.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/bsh-1.3.0.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/cglib-nodep-2.1_3.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/commons-codec-1.4.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/commons-collections-3.2.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/commons-exec-1.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/commons-io-2.0.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/commons-jxpath-1.3.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/commons-lang-2.6.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/commons-logging-1.1.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/cssparser-0.9.5.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/guava-10.0.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/hamcrest-all-1.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/htmlunit-2.9.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/htmlunit-core-js-2.9.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/httpclient-4.1.2.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/httpcore-4.1.3.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/httpmime-4.1.2.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/jcommander-1.13.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/jna-3.3.0.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/json-20080701.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/junit-dep-4.10.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/nekohtml-1.9.15.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/operadriver-v0.8.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/protobuf-java-2.4.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/sac-1.3.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/serializer-2.7.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/testng-6.0.1-nobsh-noguice.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/xalan-2.7.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/xercesImpl-2.9.1.jar"/>
-        <pathelement location="lib/selenium-2.15.0/libs/xml-apis-1.3.04.jar"/>
-        <pathelement location="lib/selenium-2.15.0/selenium-java-2.15.0.jar"/>
-    </path>
-    <target name="init">
-        <mkdir dir="bin"/>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="src">
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-    </target>
-    <target name="clean">
-        <delete dir="bin"/>
-    </target>
-    <target depends="clean" name="cleanall"/>
-    <target depends="build-subprojects,build-project" name="build"/>
-    <target name="build-subprojects"/>
-    <target depends="init" name="build-project">
-        <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
-            <src path="src"/>
-            <classpath refid="de.devisnik.android.stats.classpath"/>
-        </javac>
-    </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
-    <target name="MarketAppDataGrabber">
-        <java classname="de.devisnik.android.stats.MarketAppDataGrabber" failonerror="true" fork="yes">
-            <arg line="-login -pass"/>
-            <classpath refid="de.devisnik.android.stats.classpath"/>
-        </java>
-    </target>
+	<property environment="env" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.6" />
+	<property name="source" value="1.6" />
+	<path id="de.devisnik.android.stats.classpath">
+		<pathelement location="bin" />
+		<pathelement location="lib/selenium-2.15.0/libs/apache-mime4j-0.6.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/bsh-1.3.0.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/cglib-nodep-2.1_3.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/commons-codec-1.4.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/commons-collections-3.2.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/commons-exec-1.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/commons-io-2.0.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/commons-jxpath-1.3.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/commons-lang-2.6.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/commons-logging-1.1.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/cssparser-0.9.5.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/guava-10.0.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/hamcrest-all-1.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/htmlunit-2.9.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/htmlunit-core-js-2.9.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/httpclient-4.1.2.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/httpcore-4.1.3.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/httpmime-4.1.2.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/jcommander-1.13.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/jna-3.3.0.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/json-20080701.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/junit-dep-4.10.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/nekohtml-1.9.15.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/operadriver-v0.8.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/protobuf-java-2.4.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/sac-1.3.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/serializer-2.7.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/testng-6.0.1-nobsh-noguice.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/xalan-2.7.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/xercesImpl-2.9.1.jar" />
+		<pathelement location="lib/selenium-2.15.0/libs/xml-apis-1.3.04.jar" />
+		<pathelement location="lib/selenium-2.15.0/selenium-java-2.15.0.jar" />
+	</path>
+	<target name="init">
+		<mkdir dir="bin" />
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	<target name="clean">
+		<delete dir="bin" />
+	</target>
+	<target depends="clean" name="cleanall" />
+	<target depends="build-subprojects,build-project" name="build" />
+	<target name="build-subprojects" />
+	<target depends="init" name="build-project">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+			<src path="src" />
+			<classpath refid="de.devisnik.android.stats.classpath" />
+		</javac>
+	</target>
+	<target name="export">
+		<jar destfile="build/marketGrabber.jar" basedir="bin">
+			<manifest>
+				<attribute name="Main-Class" value="de.devisnik.android.stats.MarketAppDataGrabber" />
+			</manifest>
+		</jar>
+	</target>
+	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects" />
+	<target name="MarketAppDataGrabber">
+		<java classname="de.devisnik.android.stats.MarketAppDataGrabber" failonerror="true" fork="yes">
+			<arg line="-login -pass" />
+			<classpath refid="de.devisnik.android.stats.classpath" />
+		</java>
+	</target>
 </project>
