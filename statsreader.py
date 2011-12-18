@@ -9,7 +9,7 @@ except IndexError:
     pass
 for line in sys.stdin:
     appData = {}
-    for pair in line.strip('\n').split(',')[2:]:
+    for pair in line.strip('\n').split('|'):
         data = pair.split('=')
         appData[data[0]]=data[1]
     try:

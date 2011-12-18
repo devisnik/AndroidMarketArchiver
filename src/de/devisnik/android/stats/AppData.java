@@ -6,6 +6,8 @@ import java.util.Properties;
 
 public class AppData {
 
+	private static final String SEPARATOR = "|";
+
 	enum Property {
 		NAME, VERSION, TIMESTAMP, DOWNLOADS, INSTALLS, RATED_1, RATED_2, RATED_3, RATED_4, RATED_5,
 	}
@@ -93,7 +95,7 @@ public class AppData {
 	}
 
 	public static AppData fromString(String line) {
-		String[] pairs = line.split(",");
+		String[] pairs = line.split(SEPARATOR);
 		AppData appData = new AppData();
 		for (String pair : pairs) {
 			String[] propertyPair = pair.split("=");
@@ -107,7 +109,7 @@ public class AppData {
 
 	private void append(StringBuilder builder, String key, String value) {
 		if (builder.length() > 0)
-			builder.append(",");
+			builder.append(SEPARATOR);
 		builder.append(key + "=" + value);
 	}
 

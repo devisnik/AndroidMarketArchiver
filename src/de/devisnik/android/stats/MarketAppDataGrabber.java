@@ -7,16 +7,25 @@ import java.util.logging.Logger;
 
 import org.openqa.selenium.WebDriverBackedSelenium;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.thoughtworks.selenium.DefaultSelenium;
 
 import de.devisnik.android.stats.AppData.Property;
 
 public class MarketAppDataGrabber {
 
-	private static final String PASSWORD_BASE64_ENCODED = "dG1oZ29vZ2xl";
-	private static final String LOGIN = "volker.leck";
+	static class Params {
+		@Parameter(names = "-login", description = "google login", required=true)
+		private String mLogin;
+		
+		@Parameter(names = "-pass", description = "google password", required=true)
+		private String mPassword;		
+	}
+
 	private static final String VALID_ROWS_XPATH = "//div[@class='listingTable']/child::div[@style='']/div[@class='listingRow']";
 	private static DefaultSelenium selenium;
 
@@ -26,10 +35,25 @@ public class MarketAppDataGrabber {
 		globalLogger.setLevel(java.util.logging.Level.OFF);
 		startServerAndClient();
 		try {
-			new MarketAppDataGrabber().grab();
+			Params params = new Params();
+			JCommander commander = new JCommander(params);
+			try {
+				commander.parse(args);
+				new MarketAppDataGrabber(params).grab();
+				
+			} catch (ParameterException e) {
+				e.printStackTrace();
+				commander.usage();
+			}
 		} finally {
 			stopClientAndServer();
 		}
+	}
+
+	private Params mParams;
+
+	public MarketAppDataGrabber(Params params) {
+		mParams = params;
 	}
 
 	private static void stopClientAndServer() {
@@ -37,7 +61,7 @@ public class MarketAppDataGrabber {
 	}
 
 	private static void startServerAndClient() throws Exception {
-		HtmlUnitDriver driver = new HtmlUnitDriver(BrowserVersion.FIREFOX_3_6);
+		HtmlUnitDriver driver = new HtmlUnitDriver(DesiredCapabilities.htmlUnit());
 		driver.setJavascriptEnabled(true);
 		selenium = new WebDriverBackedSelenium(driver, "http://market.android.com");
 	}
@@ -59,10 +83,8 @@ public class MarketAppDataGrabber {
 	 */
 	private void signIn() throws UnsupportedEncodingException {
 		selenium.open("https://www.google.com/accounts/ServiceLogin?service=androiddeveloper&passive=true&nui=1&continue=http://market.android.com/publish/Home");
-		selenium.type("Email", LOGIN);
-		byte[] decode = new org.openqa.selenium.internal.Base64Encoder()
-				.decode(PASSWORD_BASE64_ENCODED);
-		selenium.type("Passwd", new String(decode, "UTF-8"));
+		selenium.type("Email", mParams.mLogin);
+		selenium.type("Passwd", mParams.mPassword);
 		selenium.click("signIn");
 		selenium.waitForPageToLoad("120000");
 	}
@@ -71,6 +93,8 @@ public class MarketAppDataGrabber {
 	 * printoutRatings.
 	 */
 	private void printoutRatings(String rootTag) throws InterruptedException, IOException {
+		selenium.open("/publish/Home");
+
 		String commentsLink = rootTag + "/table/tbody/tr[2]/td/div/a";
 		waitForElementPresent(commentsLink, 60);
 
@@ -85,13 +109,11 @@ public class MarketAppDataGrabber {
 		readRatingsData(ratingsBodyTag, appData);
 
 		System.out.println(appData);
-		selenium.goBack();
 	}
 
 	private void readRatingsData(String ratingsBodyTag, AppData appData) {
 		for (int rating = 1; rating <= 5; rating++) {
-			String ratingCountText = selenium.getText(ratingsBodyTag + "/tr[" + (6 - rating)
-					+ "]/td[3]");
+			String ratingCountText = selenium.getText(ratingsBodyTag + "/tr[" + (6 - rating) + "]/td[3]");
 			appData.setRatings(rating, ratingCountText);
 		}
 	}
@@ -107,8 +129,7 @@ public class MarketAppDataGrabber {
 		appData.setProperty(Property.INSTALLS, selenium.getText(activeInstallsTag));
 	}
 
-	private void waitForElementPresent(String elementXPath, int maxWaitInSeconds)
-			throws InterruptedException {
+	private void waitForElementPresent(String elementXPath, int maxWaitInSeconds) throws InterruptedException {
 		for (int second = 0;; second++) {
 			if (second >= maxWaitInSeconds)
 				throw new RuntimeException("timeout");
