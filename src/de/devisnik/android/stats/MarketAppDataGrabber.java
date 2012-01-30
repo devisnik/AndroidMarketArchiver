@@ -6,6 +6,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.openqa.selenium.WebDriverBackedSelenium;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
@@ -61,7 +62,7 @@ public class MarketAppDataGrabber {
 	}
 
 	private static void startServerAndClient() throws Exception {
-		HtmlUnitDriver driver = new HtmlUnitDriver(DesiredCapabilities.htmlUnit());
+		HtmlUnitDriver driver = new HtmlUnitDriver(DesiredCapabilities.firefox());
 		driver.setJavascriptEnabled(true);
 		selenium = new WebDriverBackedSelenium(driver, "http://market.android.com");
 	}
