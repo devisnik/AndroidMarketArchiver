@@ -2,9 +2,9 @@
 
 import sys
 
-key = "DOWNLOADS"
+keys = ["DOWNLOADS"]
 try:
-    key = sys.argv[1]
+    keys = sys.argv[1:]
 except IndexError:
     pass
 for line in sys.stdin:
@@ -13,7 +13,9 @@ for line in sys.stdin:
         data = pair.split('=')
         appData[data[0]]=data[1]
     try:
-        print appData[key]
+        for key in keys:
+            print '{0:20s}'.format(appData[key]),
+        print
     except KeyError:
         pass 
 

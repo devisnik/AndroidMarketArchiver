@@ -1,4 +1,5 @@
 .settings/
 bin/
 testData.txt
-
+local/
+python/
