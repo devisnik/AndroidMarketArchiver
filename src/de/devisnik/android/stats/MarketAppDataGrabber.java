@@ -29,7 +29,7 @@ public class MarketAppDataGrabber {
 
 		@Parameter(names = "-pass", description = "google password", required = true)
 		private String mPassword;
-		
+
 		@Parameter(names = "-verbose", description = "show current action", required = false)
 		private boolean mVerbose;
 	}
@@ -144,9 +144,13 @@ public class MarketAppDataGrabber {
 		String versionTag = rootTag + "/div[1]/span[2]";
 		appData.setProperty(Property.NAME, selenium.getText(nameTag));
 		appData.setProperty(Property.VERSION, selenium.getText(versionTag));
-		appData.setProperty(Property.DOWNLOADS, selenium.getText(downloadsTag));
-		appData.setProperty(Property.INSTALLS, selenium.getText(activeInstallsTag));
+		appData.setProperty(Property.DOWNLOADS, readUntilFirstSpace(selenium.getText(downloadsTag)));
+		appData.setProperty(Property.INSTALLS, readUntilFirstSpace(selenium.getText(activeInstallsTag)));
 		log("done reading " + rootTag);
+	}
+
+	private String readUntilFirstSpace(String input) {
+		return input.split(" ")[0];
 	}
 
 	private void waitForElementPresent(String elementXPath, int maxWaitInSeconds) throws InterruptedException {
