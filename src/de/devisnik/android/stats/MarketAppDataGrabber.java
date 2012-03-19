@@ -6,6 +6,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverBackedSelenium;
 import org.openqa.selenium.WebElement;
@@ -25,13 +26,22 @@ public class MarketAppDataGrabber {
 
 	static class Params {
 		@Parameter(names = "-login", description = "google login", required = true)
-		private String mLogin;
+		private String login;
 
 		@Parameter(names = "-pass", description = "google password", required = true)
-		private String mPassword;
+		private String password;
 
 		@Parameter(names = "-verbose", description = "show current action", required = false)
-		private boolean mVerbose;
+		private boolean verbose;
+
+		@Parameter(names = "-apps", description = "number of apps", required = false)
+		private int apps = 1;
+		
+		@Parameter(names = "-maxRetry", description = "max retries if load fails", required = false)	
+		private int maxRetry = 3;
+		
+		@Parameter(names = "-maxWait", description = "max load waiting in seconds", required = false)		
+		private int maxWait = 30;
 	}
 
 	private static final String VALID_ROWS_XPATH = "//div[@class='listingTable']/child::div[@style='']/div[@class='listingRow']";
@@ -59,7 +69,7 @@ public class MarketAppDataGrabber {
 	}
 
 	private Params mParams;
-	private static HtmlUnitDriver mDriver;
+	private static WebDriver mDriver;
 
 	public MarketAppDataGrabber(Params params) {
 		mParams = params;
@@ -70,24 +80,39 @@ public class MarketAppDataGrabber {
 	}
 
 	private static void startServerAndClient() throws Exception {
+		// mDriver = new FirefoxDriver();
 		mDriver = new HtmlUnitDriver(DesiredCapabilities.firefox());
-		mDriver.setJavascriptEnabled(true);
-		selenium = new WebDriverBackedSelenium(mDriver, "http://market.android.com");
+		((HtmlUnitDriver) mDriver).setJavascriptEnabled(true);
+		selenium = new WebDriverBackedSelenium(mDriver, "http://play.google.com");
 	}
 
 	private void grab() throws InterruptedException, IOException {
 		signIn();
 		waitForAppTableLoaded();
-		// extra wait to ensure all rows are present
-		Thread.sleep(2000);
 		Number count = selenium.getXpathCount(VALID_ROWS_XPATH);
+		log("found " + count + " App reports to grab.");
+		int retryCount = 0;
 		for (int index = 1; index <= count.intValue(); index++)
-			printoutRatings(VALID_ROWS_XPATH + "/../div[" + index + "]");
+			try {
+				printoutRatings(VALID_ROWS_XPATH + "/../div[" + index + "]");
+				retryCount = 0;
+			} catch (Exception e) {
+				log("Error while reading stats: " + e.getMessage());
+				if (retryCount >= mParams.maxRetry)
+					continue;
+				retryCount++;
+				index--; // try again
+			}
 	}
 
 	private void waitForAppTableLoaded() throws InterruptedException {
 		log("start waiting for apps table loaded");
-		waitForElementPresent(VALID_ROWS_XPATH, 30);
+		waitForElementPresent(VALID_ROWS_XPATH);
+		// extra wait to ensure all rows are present
+		try {
+			waitForElementPresent(VALID_ROWS_XPATH + "/../div[" + mParams.apps + "]");
+		} catch (TimeoutException e) {
+		}
 		log("app table fully loaded");
 	}
 
@@ -98,9 +123,9 @@ public class MarketAppDataGrabber {
 	 */
 	private void signIn() throws UnsupportedEncodingException {
 		log("signing in!");
-		selenium.open("https://www.google.com/accounts/ServiceLogin?service=androiddeveloper&passive=true&nui=1&continue=http://market.android.com/publish/Home");
-		selenium.type("Email", mParams.mLogin);
-		selenium.type("Passwd", mParams.mPassword);
+		selenium.open("https://www.google.com/accounts/ServiceLogin?service=androiddeveloper&passive=true&nui=1&continue=http://play.google.com/apps/publish/Home");
+		selenium.type("Email", mParams.login);
+		selenium.type("Passwd", mParams.password);
 		selenium.click("signIn");
 		selenium.waitForPageToLoad("120000");
 		log("done signing in!");
@@ -110,11 +135,11 @@ public class MarketAppDataGrabber {
 	 * printoutRatings.
 	 */
 	private void printoutRatings(String rootTag) throws InterruptedException, IOException {
-		log("opening /publish/Home");
-		selenium.open("/publish/Home");
+		log("opening /apps/publish/Home");
+		selenium.open("/apps/publish/Home");
 
 		String commentsLink = rootTag + "/table/tbody/tr[2]/td/div/a";
-		waitForElementPresent(commentsLink, 60);
+		waitForElementPresent(commentsLink);
 
 		AppData appData = new AppData();
 		readBasicAppData(rootTag, appData);
@@ -122,7 +147,7 @@ public class MarketAppDataGrabber {
 		selenium.click(commentsLink);
 
 		String ratingsBodyTag = "//div[@id='app']/div/div/div[2]/div/div[2]/div[2]/div/div/div[3]/table/tbody";
-		waitForElementPresent(ratingsBodyTag, 30);
+		waitForElementPresent(ratingsBodyTag);
 
 		readRatingsData(ratingsBodyTag, appData);
 
@@ -130,14 +155,16 @@ public class MarketAppDataGrabber {
 	}
 
 	private void readRatingsData(String ratingsBodyTag, AppData appData) {
+		log("start reading ratings data at " + ratingsBodyTag);
 		for (int rating = 1; rating <= 5; rating++) {
 			String ratingCountText = selenium.getText(ratingsBodyTag + "/tr[" + (6 - rating) + "]/td[3]");
 			appData.setRatings(rating, ratingCountText);
 		}
+		log("done reading ratings data at " + ratingsBodyTag);
 	}
 
 	private void readBasicAppData(String rootTag, AppData appData) {
-		log("reading " + rootTag);
+		log("start reading basic data at " + rootTag);
 		String downloadsTag = rootTag + "/div[2]/div[1]/span";
 		String activeInstallsTag = rootTag + "/div[2]/div[2]/span[1]";
 		String nameTag = rootTag + "/div[1]/a";
@@ -146,15 +173,15 @@ public class MarketAppDataGrabber {
 		appData.setProperty(Property.VERSION, selenium.getText(versionTag));
 		appData.setProperty(Property.DOWNLOADS, readUntilFirstSpace(selenium.getText(downloadsTag)));
 		appData.setProperty(Property.INSTALLS, readUntilFirstSpace(selenium.getText(activeInstallsTag)));
-		log("done reading " + rootTag);
+		log("done reading basic data at " + rootTag);
 	}
 
 	private String readUntilFirstSpace(String input) {
 		return input.split(" ")[0];
 	}
 
-	private void waitForElementPresent(String elementXPath, int maxWaitInSeconds) throws InterruptedException {
-		WebDriverWait wait = new WebDriverWait(mDriver, maxWaitInSeconds);
+	private void waitForElementPresent(String elementXPath) throws InterruptedException {
+		WebDriverWait wait = new WebDriverWait(mDriver, mParams.maxWait);
 		wait.until(visibilityOfElementLocated(By.xpath(elementXPath)));
 	}
 
@@ -168,7 +195,7 @@ public class MarketAppDataGrabber {
 	}
 
 	private void log(String message) {
-		if (mParams.mVerbose)
+		if (mParams.verbose)
 			System.out.println(message);
 	}
 }
